@@ -61,7 +61,10 @@ local rain = {
 	verbose = globalPropertyi("librain/verbose"),
 }
 
+local rain_inited = false
+
 function initRain()
+	rain_inited = true
 	local acf_folder_mod = sasl.getAircraftPath()
 	local is_librain_installed = 0
 	if get(rain.init) ~= nil then is_librain_installed = 1 end
@@ -116,6 +119,10 @@ function initRain()
 end
 
 function update()
+	-- This should go to onPlaneLoaded() but seems like the function is not called when the plane is loaded. Maybe a SASL3 bug?
+	if (rain_inited == false) then 
+		initRain()		
+	end
 	if get(rain.init_success) == 0 then
 		set(rain.init, 1)
 	else
@@ -132,16 +139,12 @@ function update()
 	end
 end
 
-function onPlaneLoaded()
-	initRain()
-end
-
 function onModuleDone()
 	-- Unload rain plugin
 	set(rain.init, 0)
 end
 
--- Add to main lua to prevent CTD when plane crashes
+-- Must add to main lua to prevent CTD when the plane crashes
 function onPlaneCrash ()
 	return 0
 end
